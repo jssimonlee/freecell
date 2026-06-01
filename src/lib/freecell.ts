@@ -1,9 +1,11 @@
 export const SUITS = ['clubs', 'diamonds', 'hearts', 'spades'] as const
 export const FOUNDATION_SLOTS = [...SUITS]
+const DEAL_VARIANTS = 24
 
 const RANK_LABELS = ['?', 'A', '2', '3', '4', '5', '6', '7', '8', '9', '10', 'J', 'Q', 'K']
 
 export type Suit = (typeof SUITS)[number]
+export type DifficultyLevel = 'easy' | 'medium' | 'hard'
 type Color = 'red' | 'black'
 
 export const SUIT_SYMBOLS: Record<Suit, string> = {
@@ -98,6 +100,78 @@ function isDescendingAlternating(cards: Card[]) {
   return true
 }
 
+function getOrderedTailLength(cascade: Card[]) {
+  if (cascade.length === 0) {
+    return 0
+  }
+
+  let length = 1
+
+  for (let index = cascade.length - 1; index > 0; index -= 1) {
+    const current = cascade[index]
+    const previous = cascade[index - 1]
+
+    if (previous.color === current.color || previous.rank !== current.rank + 1) {
+      break
+    }
+
+    length += 1
+  }
+
+  return length
+}
+
+function createShuffledCascades() {
+  const cascades = Array.from({ length: 8 }, () => [] as Card[])
+
+  shuffleDeck(createDeck()).forEach((card, index) => {
+    cascades[index % cascades.length].push(card)
+  })
+
+  return cascades
+}
+
+function getCascadeEaseScore(cascade: Card[]) {
+  const visibleCards = cascade.slice(-4).reverse()
+
+  const visibilityScore = visibleCards.reduce((score, card, depth) => {
+    const depthWeight = [1, 0.6, 0.35, 0.18][depth] ?? 0.1
+    const lowRankBonus = 14 - card.rank
+    const foundationBonus = card.rank === 1 ? 8 : card.rank === 2 ? 5 : card.rank === 3 ? 3 : 0
+
+    return score + depthWeight * (lowRankBonus + foundationBonus)
+  }, 0)
+
+  const orderedTailBonus = Math.max(0, getOrderedTailLength(cascade) - 1) * 2.25
+
+  return visibilityScore + orderedTailBonus
+}
+
+function evaluateDeal(cascades: Card[][]) {
+  return cascades.reduce((score, cascade) => score + getCascadeEaseScore(cascade), 0)
+}
+
+function createCascadesForDifficulty(difficulty: DifficultyLevel) {
+  const variants = Array.from({ length: DEAL_VARIANTS }, () => {
+    const cascades = createShuffledCascades()
+
+    return {
+      cascades,
+      score: evaluateDeal(cascades),
+    }
+  }).sort((left, right) => left.score - right.score)
+
+  if (difficulty === 'easy') {
+    return variants[variants.length - 1].cascades
+  }
+
+  if (difficulty === 'hard') {
+    return variants[0].cascades
+  }
+
+  return variants[Math.floor(variants.length / 2)].cascades
+}
+
 function cascadeIsOrdered(cascade: Card[]) {
   return cascade.length < 2 || isDescendingAlternating(cascade)
 }
@@ -154,12 +228,8 @@ function getMaxMovableCards(game: GameState, selection: Selection, targetColumn:
   return (countEmptyFreeCells(game) + 1) * 2 ** emptyCascades
 }
 
-export function createGame(): GameState {
-  const cascades = Array.from({ length: 8 }, () => [] as Card[])
-
-  shuffleDeck(createDeck()).forEach((card, index) => {
-    cascades[index % cascades.length].push(card)
-  })
+export function createGame(difficulty: DifficultyLevel = 'medium'): GameState {
+  const cascades = createCascadesForDifficulty(difficulty)
 
   return {
     cascades,

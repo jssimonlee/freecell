@@ -82,6 +82,45 @@
   gap: 8px;
 }
 
+.difficulty-group {
+  display: inline-flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  padding: 3px;
+  border-radius: 999px;
+  border: 1px solid rgba(248, 227, 181, 0.16);
+  background: rgba(8, 31, 22, 0.42);
+}
+
+.difficulty-button {
+  border: 1px solid transparent;
+  border-radius: 999px;
+  padding: 6px 10px;
+  color: #e8dcc0;
+  background: transparent;
+  font-size: 0.76rem;
+  line-height: 1.1;
+  cursor: pointer;
+  transition:
+    transform 0.18s ease,
+    border-color 0.18s ease,
+    background 0.18s ease,
+    color 0.18s ease;
+}
+
+.difficulty-button:hover,
+.difficulty-button:focus-visible {
+  transform: translateY(-1px);
+  border-color: rgba(248, 227, 181, 0.32);
+}
+
+.difficulty-button--active {
+  color: #173020;
+  background: linear-gradient(135deg, #f6d792 0%, #f0bb55 100%);
+  border-color: transparent;
+  font-weight: 700;
+}
+
 .action-button,
 .empty-cascade {
   cursor: pointer;

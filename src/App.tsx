@@ -12,6 +12,7 @@ import {
   countEmptyFreeCells,
   countSolvedCards,
   createGame,
+  type DifficultyLevel,
   findFirstFoundationMove,
   getAutoCompleteGame,
   getOpenTransferCapacity,
@@ -36,6 +37,14 @@ const FOUNDATION_NAMES: Record<Suit, string> = {
   hearts: '하트',
   spades: '스페이드',
 }
+
+const DIFFICULTY_LABELS: Record<DifficultyLevel, string> = {
+  easy: '초급',
+  medium: '중급',
+  hard: '고급',
+}
+
+const DIFFICULTY_ORDER: DifficultyLevel[] = ['easy', 'medium', 'hard']
 
 function formatTime(totalSeconds: number) {
   const minutes = Math.floor(totalSeconds / 60)
@@ -116,7 +125,8 @@ function CardFace({ card }: { card: Card }) {
 
 function App() {
   const { playSound } = useGameAudio()
-  const [game, setGame] = useState<GameState>(() => createGame())
+  const [difficulty, setDifficulty] = useState<DifficultyLevel>('medium')
+  const [game, setGame] = useState<GameState>(() => createGame('medium'))
   const [history, setHistory] = useState<GameState[]>([])
   const [selection, setSelection] = useState<Selection | null>(null)
   const [startedAt, setStartedAt] = useState(() => Date.now())
@@ -168,13 +178,22 @@ function App() {
     )
   }
 
-  const startNewDeal = () => {
-    setGame(createGame())
+  const startNewDeal = (nextDifficulty = difficulty) => {
+    setGame(createGame(nextDifficulty))
     setHistory([])
     setSelection(null)
     setStartedAt(Date.now())
     setElapsedSeconds(0)
-    updateStatus('새 게임을 시작했습니다.', 'deal')
+    updateStatus(`${DIFFICULTY_LABELS[nextDifficulty]} 난이도로 새 게임을 시작했습니다.`, 'deal')
+  }
+
+  const handleDifficultyChange = (nextDifficulty: DifficultyLevel) => {
+    if (difficulty === nextDifficulty) {
+      return
+    }
+
+    setDifficulty(nextDifficulty)
+    updateStatus(`${DIFFICULTY_LABELS[nextDifficulty]} 난이도가 선택되었습니다. 새 게임에 적용됩니다.`, 'select')
   }
 
   const undoMove = () => {
@@ -449,10 +468,27 @@ function App() {
 
         <section className="control-panel">
           <div className="controls">
+            <div className="difficulty-group" role="group" aria-label="난이도 선택">
+              {DIFFICULTY_ORDER.map((level) => (
+                <button
+                  key={level}
+                  type="button"
+                  className={[
+                    'difficulty-button',
+                    difficulty === level ? 'difficulty-button--active' : '',
+                  ]
+                    .filter(Boolean)
+                    .join(' ')}
+                  onClick={() => handleDifficultyChange(level)}
+                >
+                  {DIFFICULTY_LABELS[level]}
+                </button>
+              ))}
+            </div>
             <button
               type="button"
               className="action-button action-button--primary"
-              onClick={startNewDeal}
+              onClick={() => startNewDeal()}
             >
               새 게임
             </button>
@@ -475,6 +511,7 @@ function App() {
           </div>
 
           <div className="table-stats">
+            <span>난이도 {DIFFICULTY_LABELS[difficulty]}</span>
             <span>빈 임시 칸 {emptyFreeCells}</span>
             <span>빈 열 {emptyCascades}</span>
             <span>현재 최대 {transferCapacity}장 이동</span>
