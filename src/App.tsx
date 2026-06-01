@@ -23,6 +23,7 @@ import {
   type Selection,
   type Suit,
 } from './lib/freecell'
+import { useGameAudio, type GameSound } from './lib/gameAudio'
 import './App.css'
 
 const STACK_SPACING = 48
@@ -113,6 +114,7 @@ function CardFace({ card }: { card: Card }) {
 }
 
 function App() {
+  const { playSound } = useGameAudio()
   const [game, setGame] = useState<GameState>(() => createGame())
   const [history, setHistory] = useState<GameState[]>([])
   const [selection, setSelection] = useState<Selection | null>(null)
@@ -126,6 +128,14 @@ function App() {
   const solvedCards = countSolvedCards(game)
   const progress = Math.round((solvedCards / 52) * 100)
   const transferCapacity = getOpenTransferCapacity(game)
+
+  const updateStatus = (message: string, sound?: GameSound) => {
+    setStatusMessage(message)
+
+    if (sound) {
+      playSound(sound)
+    }
+  }
 
   useEffect(() => {
     setElapsedSeconds(Math.floor((Date.now() - startedAt) / 1000))
@@ -141,17 +151,18 @@ function App() {
     return () => window.clearInterval(timer)
   }, [startedAt, won])
 
-  const commitMove = (nextGame: GameState, message: string) => {
+  const commitMove = (nextGame: GameState, message: string, sound: GameSound = 'move') => {
     const completed = isGameWon(nextGame)
     const currentElapsed = Math.floor((Date.now() - startedAt) / 1000)
 
     setHistory((previous) => [...previous, cloneGame(game)])
     setGame(nextGame)
     setSelection(null)
-    setStatusMessage(
+    updateStatus(
       completed
         ? `${nextGame.moves}번 이동, ${formatTime(currentElapsed)}만에 클리어했습니다.`
         : message,
+      completed ? 'win' : sound,
     )
   }
 
@@ -161,12 +172,12 @@ function App() {
     setSelection(null)
     setStartedAt(Date.now())
     setElapsedSeconds(0)
-    setStatusMessage('새 게임을 시작했습니다.')
+    updateStatus('새 게임을 시작했습니다.', 'deal')
   }
 
   const undoMove = () => {
     if (history.length === 0) {
-      setStatusMessage('되돌릴 수 있는 이동이 없습니다.')
+      updateStatus('되돌릴 수 있는 이동이 없습니다.', 'invalid')
       return
     }
 
@@ -174,39 +185,42 @@ function App() {
     setHistory((previous) => previous.slice(0, -1))
     setGame(previousGame)
     setSelection(null)
-    setStatusMessage('직전 이동을 되돌렸습니다.')
+    updateStatus('직전 이동을 되돌렸습니다.', 'undo')
   }
 
   const select = (nextSelection: Selection) => {
     setSelection(nextSelection)
-    setStatusMessage(describeSelection(nextSelection))
+    updateStatus(describeSelection(nextSelection), 'select')
   }
 
   const moveSelectionToHome = (source: Selection, targetSuit?: Suit) => {
     const nextGame = moveSelectionToFoundation(game, source, targetSuit)
 
     if (!nextGame) {
-      setStatusMessage('완성 칸에는 같은 무늬의 카드만 A부터 순서대로 올릴 수 있습니다.')
+      updateStatus('완성 칸에는 같은 무늬의 카드만 A부터 순서대로 올릴 수 있습니다.', 'invalid')
       return
     }
 
-    commitMove(nextGame, getMoveSummary(source, '완성 칸'))
+    commitMove(nextGame, getMoveSummary(source, '완성 칸'), 'home')
   }
 
   const moveSelectionToColumn = (column: number) => {
     if (!selection) {
-      setStatusMessage('먼저 이동할 카드를 선택하세요.')
+      updateStatus('먼저 이동할 카드를 선택하세요.', 'invalid')
       return
     }
 
     const nextGame = moveSelectionToCascade(game, selection, column)
 
     if (!nextGame) {
-      setStatusMessage('열은 색을 번갈아 내림차순으로만 놓을 수 있고, 긴 이동은 빈 칸 수에 따라 달라집니다.')
+      updateStatus(
+        '열은 색을 번갈아 내림차순으로만 놓을 수 있고, 긴 이동은 빈 칸 수에 따라 달라집니다.',
+        'invalid',
+      )
       return
     }
 
-    commitMove(nextGame, getMoveSummary(selection, `${column + 1}열`))
+    commitMove(nextGame, getMoveSummary(selection, `${column + 1}열`), 'move')
   }
 
   const moveSelectionByPriority = (
@@ -222,7 +236,7 @@ function App() {
       const foundationMove = moveSelectionToFoundation(game, source)
 
       if (foundationMove) {
-        commitMove(foundationMove, getMoveSummary(source, '완성 칸'))
+        commitMove(foundationMove, getMoveSummary(source, '완성 칸'), 'home')
         return true
       }
     }
@@ -237,7 +251,7 @@ function App() {
         const cascadeMove = moveSelectionToCascade(game, source, column)
 
         if (cascadeMove) {
-          commitMove(cascadeMove, getMoveSummary(source, `${column + 1}열`))
+          commitMove(cascadeMove, getMoveSummary(source, `${column + 1}열`), 'move')
           return true
         }
       }
@@ -248,7 +262,7 @@ function App() {
         const freeCellMove = moveSelectionToFreeCell(game, source, index)
 
         if (freeCellMove) {
-          commitMove(freeCellMove, getMoveSummary(source, `임시 칸 ${index + 1}`))
+          commitMove(freeCellMove, getMoveSummary(source, `임시 칸 ${index + 1}`), 'move')
           return true
         }
       }
@@ -270,7 +284,7 @@ function App() {
       selection.startIndex === index
     ) {
       setSelection(null)
-      setStatusMessage('선택을 해제했습니다.')
+      updateStatus('선택을 해제했습니다.', 'select')
       return
     }
 
@@ -278,7 +292,7 @@ function App() {
       const nextGame = moveSelectionToCascade(game, selection, column)
 
       if (nextGame) {
-        commitMove(nextGame, getMoveSummary(selection, `${column + 1}열`))
+        commitMove(nextGame, getMoveSummary(selection, `${column + 1}열`), 'move')
         return
       }
     }
@@ -286,7 +300,7 @@ function App() {
     const nextSelection = buildCascadeSelection(game, column, index)
 
     if (!nextSelection) {
-      setStatusMessage('열에서는 색이 번갈아 내려가는 카드 묶음만 선택할 수 있습니다.')
+      updateStatus('열에서는 색이 번갈아 내려가는 카드 묶음만 선택할 수 있습니다.', 'invalid')
       return
     }
 
@@ -315,7 +329,7 @@ function App() {
       })
 
       if (!moved) {
-        setStatusMessage('자동으로 이동할 수 있는 완성 칸, 다른 열, 임시 칸이 없습니다.')
+        updateStatus('자동으로 이동할 수 있는 완성 칸, 다른 열, 임시 칸이 없습니다.', 'invalid')
       }
     }
   }
@@ -334,14 +348,14 @@ function App() {
     })
 
     if (!moved) {
-      setStatusMessage('임시 칸 카드가 내려갈 수 있는 열이 없습니다.')
+      updateStatus('임시 칸 카드가 내려갈 수 있는 열이 없습니다.', 'invalid')
     }
   }
 
   const handleFreeCellClick = (index: number) => {
     if (selection?.kind === 'freeCell' && selection.index === index) {
       setSelection(null)
-      setStatusMessage('선택을 해제했습니다.')
+      updateStatus('선택을 해제했습니다.', 'select')
       return
     }
 
@@ -349,7 +363,7 @@ function App() {
       const nextGame = moveSelectionToFreeCell(game, selection, index)
 
       if (nextGame) {
-        commitMove(nextGame, getMoveSummary(selection, `임시 칸 ${index + 1}`))
+        commitMove(nextGame, getMoveSummary(selection, `임시 칸 ${index + 1}`), 'move')
         return
       }
     }
@@ -361,16 +375,17 @@ function App() {
       return
     }
 
-    setStatusMessage(
+    updateStatus(
       selection
         ? '임시 칸에는 카드 1장만 놓을 수 있고, 한 번에 1장만 이동할 수 있습니다.'
         : '비어 있는 임시 칸입니다.',
+      'invalid',
     )
   }
 
   const handleFoundationClick = (suit: Suit) => {
     if (!selection) {
-      setStatusMessage(`${FOUNDATION_NAMES[suit]} 완성 칸에 올릴 카드를 먼저 선택하세요.`)
+      updateStatus(`${FOUNDATION_NAMES[suit]} 완성 칸에 올릴 카드를 먼저 선택하세요.`, 'invalid')
       return
     }
 
@@ -384,7 +399,7 @@ function App() {
         : findFirstFoundationMove(game)
 
     if (!source) {
-      setStatusMessage('지금 바로 완성 칸으로 올릴 수 있는 카드가 없습니다.')
+      updateStatus('지금 바로 완성 칸으로 올릴 수 있는 카드가 없습니다.', 'invalid')
       return
     }
 
