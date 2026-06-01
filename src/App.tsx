@@ -25,7 +25,14 @@ import {
 } from './lib/freecell'
 import './App.css'
 
-const STACK_SPACING = 34
+const STACK_SPACING = 30
+
+const FOUNDATION_NAMES: Record<Suit, string> = {
+  clubs: '클럽',
+  diamonds: '다이아',
+  hearts: '하트',
+  spades: '스페이드',
+}
 
 function formatTime(totalSeconds: number) {
   const minutes = Math.floor(totalSeconds / 60)
@@ -40,18 +47,18 @@ function describeCard(card: Card) {
 
 function describeSelection(selection: Selection) {
   if (selection.cards.length === 1) {
-    return `${describeCard(selection.cards[0])} is ready to move. Choose a free cell, foundation, or cascade.`
+    return `${describeCard(selection.cards[0])} 선택됨. 임시 칸, 완성 칸, 또는 다른 열을 누르세요.`
   }
 
-  return `${selection.cards.length}-card run starting with ${describeCard(selection.cards[0])} selected. Choose a destination cascade.`
+  return `${describeCard(selection.cards[0])}부터 ${selection.cards.length}장을 선택했습니다. 이동할 열을 고르세요.`
 }
 
 function getMoveSummary(selection: Selection, destination: string) {
   if (selection.cards.length === 1) {
-    return `${describeCard(selection.cards[0])} moved to ${destination}.`
+    return `${describeCard(selection.cards[0])} 카드를 ${destination}(으)로 옮겼습니다.`
   }
 
-  return `${selection.cards.length}-card run moved to ${destination}.`
+  return `${selection.cards.length}장의 연속 카드를 ${destination}(으)로 옮겼습니다.`
 }
 
 function cardIsSelected(selection: Selection | null, column: number, index: number) {
@@ -69,7 +76,10 @@ function CardFace({ card }: { card: Card }) {
         <span>{card.rankText}</span>
         <span>{card.suitSymbol}</span>
       </span>
-      <span className="card-face__pip">{card.suitSymbol}</span>
+      <span className="card-face__center">
+        <span className="card-face__rank">{card.rankText}</span>
+        <span className="card-face__pip">{card.suitSymbol}</span>
+      </span>
       <span className="card-face__corner card-face__corner--bottom">
         <span>{card.rankText}</span>
         <span>{card.suitSymbol}</span>
@@ -84,9 +94,7 @@ function App() {
   const [selection, setSelection] = useState<Selection | null>(null)
   const [startedAt, setStartedAt] = useState(() => Date.now())
   const [elapsedSeconds, setElapsedSeconds] = useState(0)
-  const [statusMessage, setStatusMessage] = useState(
-    'Select an exposed card or an ordered run to start.',
-  )
+  const [statusMessage, setStatusMessage] = useState('열린 카드나 연결된 카드 묶음을 선택하세요.')
 
   const won = isGameWon(game)
   const emptyFreeCells = countEmptyFreeCells(game)
@@ -118,7 +126,7 @@ function App() {
     setSelection(null)
     setStatusMessage(
       completed
-        ? `Table cleared in ${nextGame.moves} moves and ${formatTime(currentElapsed)}.`
+        ? `${nextGame.moves}번 이동, ${formatTime(currentElapsed)}만에 클리어했습니다.`
         : message,
     )
   }
@@ -129,12 +137,12 @@ function App() {
     setSelection(null)
     setStartedAt(Date.now())
     setElapsedSeconds(0)
-    setStatusMessage('Fresh deal. Free cells are empty and every card is exposed.')
+    setStatusMessage('새 게임을 시작했습니다.')
   }
 
   const undoMove = () => {
     if (history.length === 0) {
-      setStatusMessage('Nothing to undo yet.')
+      setStatusMessage('되돌릴 수 있는 이동이 없습니다.')
       return
     }
 
@@ -142,7 +150,7 @@ function App() {
     setHistory((previous) => previous.slice(0, -1))
     setGame(previousGame)
     setSelection(null)
-    setStatusMessage('Last move undone.')
+    setStatusMessage('직전 이동을 되돌렸습니다.')
   }
 
   const select = (nextSelection: Selection) => {
@@ -154,31 +162,27 @@ function App() {
     const nextGame = moveSelectionToFoundation(game, source, targetSuit)
 
     if (!nextGame) {
-      setStatusMessage(
-        'Only a single exposed card can move home, and foundations build upward by matching suit.',
-      )
+      setStatusMessage('완성 칸에는 같은 무늬의 카드만 A부터 순서대로 올릴 수 있습니다.')
       return
     }
 
-    commitMove(nextGame, getMoveSummary(source, 'its foundation'))
+    commitMove(nextGame, getMoveSummary(source, '완성 칸'))
   }
 
   const moveSelectionToColumn = (column: number) => {
     if (!selection) {
-      setStatusMessage('Select a card or run before choosing a cascade.')
+      setStatusMessage('먼저 이동할 카드를 선택하세요.')
       return
     }
 
     const nextGame = moveSelectionToCascade(game, selection, column)
 
     if (!nextGame) {
-      setStatusMessage(
-        'That destination is blocked. Cascades build down in alternating colors and long runs depend on open cells.',
-      )
+      setStatusMessage('열은 색을 번갈아 내림차순으로만 놓을 수 있고, 긴 이동은 빈 칸 수에 따라 달라집니다.')
       return
     }
 
-    commitMove(nextGame, getMoveSummary(selection, `cascade ${column + 1}`))
+    commitMove(nextGame, getMoveSummary(selection, `${column + 1}열`))
   }
 
   const handleCascadeCardClick = (
@@ -194,7 +198,7 @@ function App() {
       selection.startIndex === index
     ) {
       setSelection(null)
-      setStatusMessage('Selection cleared.')
+      setStatusMessage('선택을 해제했습니다.')
       return
     }
 
@@ -202,7 +206,7 @@ function App() {
       const nextGame = moveSelectionToCascade(game, selection, column)
 
       if (nextGame) {
-        commitMove(nextGame, getMoveSummary(selection, `cascade ${column + 1}`))
+        commitMove(nextGame, getMoveSummary(selection, `${column + 1}열`))
         return
       }
     }
@@ -210,7 +214,7 @@ function App() {
     const nextSelection = buildCascadeSelection(game, column, index)
 
     if (!nextSelection) {
-      setStatusMessage('You can only lift an alternating descending run from a cascade.')
+      setStatusMessage('열에서는 색이 번갈아 내려가는 카드 묶음만 선택할 수 있습니다.')
       return
     }
 
@@ -238,7 +242,7 @@ function App() {
   const handleFreeCellClick = (index: number) => {
     if (selection?.kind === 'freeCell' && selection.index === index) {
       setSelection(null)
-      setStatusMessage('Selection cleared.')
+      setStatusMessage('선택을 해제했습니다.')
       return
     }
 
@@ -246,7 +250,7 @@ function App() {
       const nextGame = moveSelectionToFreeCell(game, selection, index)
 
       if (nextGame) {
-        commitMove(nextGame, getMoveSummary(selection, `free cell ${index + 1}`))
+        commitMove(nextGame, getMoveSummary(selection, `임시 칸 ${index + 1}`))
         return
       }
     }
@@ -260,14 +264,14 @@ function App() {
 
     setStatusMessage(
       selection
-        ? 'Free cells hold exactly one card, and only single cards can move into them.'
-        : 'That free cell is empty.',
+        ? '임시 칸에는 카드 1장만 놓을 수 있고, 한 번에 1장만 이동할 수 있습니다.'
+        : '비어 있는 임시 칸입니다.',
     )
   }
 
   const handleFoundationClick = (suit: Suit) => {
     if (!selection) {
-      setStatusMessage(`Select a single card before using the ${SUIT_SYMBOLS[suit]} foundation.`)
+      setStatusMessage(`${FOUNDATION_NAMES[suit]} 완성 칸에 올릴 카드를 먼저 선택하세요.`)
       return
     }
 
@@ -281,7 +285,7 @@ function App() {
         : findFirstFoundationMove(game)
 
     if (!source) {
-      setStatusMessage('No exposed cards can move to a foundation right now.')
+      setStatusMessage('지금 바로 완성 칸으로 올릴 수 있는 카드가 없습니다.')
       return
     }
 
@@ -292,25 +296,21 @@ function App() {
     <div className="app-shell">
       <header className="hero-panel">
         <div className="hero-copy">
-          <p className="eyebrow">Static web app • GitHub Pages ready</p>
-          <h1>FreeCell Parlour</h1>
-          <p className="lede">
-            A browser-first take on the Windows classic with original styling, no backend,
-            and no licensed assets.
-          </p>
+          <p className="eyebrow">웹 카드 게임</p>
+          <h1>프리셀</h1>
         </div>
 
         <div className="hero-metrics">
           <article className="metric-card">
-            <span className="metric-card__label">Moves</span>
+            <span className="metric-card__label">이동</span>
             <strong>{game.moves}</strong>
           </article>
           <article className="metric-card">
-            <span className="metric-card__label">Time</span>
+            <span className="metric-card__label">시간</span>
             <strong>{formatTime(elapsedSeconds)}</strong>
           </article>
           <article className="metric-card">
-            <span className="metric-card__label">Solved</span>
+            <span className="metric-card__label">완료</span>
             <strong>{progress}%</strong>
           </article>
         </div>
@@ -323,7 +323,7 @@ function App() {
             className="action-button action-button--primary"
             onClick={startNewDeal}
           >
-            New deal
+            새 게임
           </button>
           <button
             type="button"
@@ -331,17 +331,17 @@ function App() {
             onClick={undoMove}
             disabled={history.length === 0}
           >
-            Undo
+            되돌리기
           </button>
           <button type="button" className="action-button" onClick={handleAutoFoundation}>
-            Auto home
+            자동 올리기
           </button>
         </div>
 
         <div className="table-stats">
-          <span>{emptyFreeCells} open free cells</span>
-          <span>{emptyCascades} empty cascades</span>
-          <span>Up to {transferCapacity} cards movable with current space</span>
+          <span>빈 임시 칸 {emptyFreeCells}</span>
+          <span>빈 열 {emptyCascades}</span>
+          <span>현재 최대 {transferCapacity}장 이동</span>
         </div>
       </section>
 
@@ -351,11 +351,8 @@ function App() {
         <section className="zone-strip">
           <section className="zone-card">
             <div className="zone-card__header">
-              <div>
-                <p className="zone-card__eyebrow">Reserve</p>
-                <h2>Free Cells</h2>
-              </div>
-              <span>{emptyFreeCells} available</span>
+              <h2>임시 칸</h2>
+              <span>{emptyFreeCells}칸 비어 있음</span>
             </div>
 
             <div className="slot-grid">
@@ -390,7 +387,7 @@ function App() {
                       <CardFace card={card} />
                     ) : (
                       <>
-                        <span className="slot-label">Open</span>
+                        <span className="slot-label">빈칸</span>
                         <span className="slot-symbol">+</span>
                       </>
                     )}
@@ -402,11 +399,8 @@ function App() {
 
           <section className="zone-card">
             <div className="zone-card__header">
-              <div>
-                <p className="zone-card__eyebrow">Goal</p>
-                <h2>Foundations</h2>
-              </div>
-              <span>{solvedCards}/52 home</span>
+              <h2>완성 칸</h2>
+              <span>{solvedCards}/52장 완료</span>
             </div>
 
             <div className="slot-grid">
@@ -437,7 +431,7 @@ function App() {
                       <CardFace card={topCard} />
                     ) : (
                       <>
-                        <span className="slot-label">{suit}</span>
+                        <span className="slot-label">{FOUNDATION_NAMES[suit]}</span>
                         <span className="slot-symbol">{SUIT_SYMBOLS[suit]}</span>
                       </>
                     )}
@@ -465,7 +459,7 @@ function App() {
                   className={`column-target ${isDropTarget ? 'column-target--active' : ''}`}
                   onClick={() => moveSelectionToColumn(column)}
                 >
-                  Cascade {column + 1}
+                  {column + 1}열
                 </button>
 
                 <div
@@ -484,7 +478,7 @@ function App() {
                       className="empty-cascade"
                       onClick={() => moveSelectionToColumn(column)}
                     >
-                      Move here
+                      여기로 이동
                     </button>
                   ) : (
                     cascade.map((card, index) => (
@@ -515,30 +509,6 @@ function App() {
               </article>
             )
           })}
-        </section>
-
-        <section className="notes-panel">
-          <article>
-            <h3>How to play</h3>
-            <p>
-              Build cascades downward in alternating colors, move single cards into open free
-              cells, and send every suit from Ace to King into the foundations.
-            </p>
-          </article>
-          <article>
-            <h3>Quick tip</h3>
-            <p>
-              Double-click any exposed single card to send it home when the move is legal, or
-              use Auto home for the next available foundation move.
-            </p>
-          </article>
-          <article>
-            <h3>Deploy</h3>
-            <p>
-              This project ships as static files, so GitHub Pages works directly. Vercel works
-              too without extra server configuration.
-            </p>
-          </article>
         </section>
       </main>
     </div>
