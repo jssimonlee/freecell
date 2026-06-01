@@ -314,23 +314,28 @@ function App() {
   ) => {
     event.stopPropagation()
 
-    if (index !== game.cascades[column].length - 1) {
+    const source = buildCascadeSelection(game, column, index)
+
+    if (!source) {
+      updateStatus('이 카드 묶음은 더블클릭으로 자동 이동할 수 없습니다.', 'invalid')
       return
     }
 
-    const source = buildCascadeSelection(game, column, index)
+    const singleCard = source.cards.length === 1
+    const moved = moveSelectionByPriority(source, {
+      sourceColumn: column,
+      allowFoundation: singleCard,
+      allowCascade: true,
+      allowFreeCell: singleCard,
+    })
 
-    if (source) {
-      const moved = moveSelectionByPriority(source, {
-        sourceColumn: column,
-        allowFoundation: true,
-        allowCascade: true,
-        allowFreeCell: true,
-      })
-
-      if (!moved) {
-        updateStatus('자동으로 이동할 수 있는 완성 칸, 다른 열, 임시 칸이 없습니다.', 'invalid')
-      }
+    if (!moved) {
+      updateStatus(
+        singleCard
+          ? '자동으로 이동할 수 있는 완성 칸, 다른 열, 임시 칸이 없습니다.'
+          : '이 카드 묶음이 자동으로 이동할 수 있는 다른 열이 없습니다.',
+        'invalid',
+      )
     }
   }
 
