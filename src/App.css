@@ -1,12 +1,14 @@
 .app-shell {
   min-height: 100vh;
-  padding: 8px clamp(10px, 2vw, 20px) 14px;
+  width: min(1480px, calc(100vw - 44px));
+  margin: 0 auto;
+  padding: 10px 0 18px;
 }
 
 .top-panel {
   display: grid;
-  gap: 2px;
-  margin-bottom: 4px;
+  gap: 4px;
+  margin-bottom: 8px;
 }
 
 .hero-panel {
@@ -14,7 +16,7 @@
   flex-wrap: wrap;
   justify-content: space-between;
   align-items: center;
-  gap: 6px;
+  gap: 10px 14px;
 }
 
 .metric-card,
@@ -70,14 +72,14 @@
   display: flex;
   flex-wrap: wrap;
   justify-content: space-between;
-  gap: 6px;
+  gap: 10px 14px;
 }
 
 .controls,
 .table-stats {
   display: flex;
   flex-wrap: wrap;
-  gap: 6px;
+  gap: 8px;
 }
 
 .action-button,
@@ -127,7 +129,7 @@
 }
 
 .status-banner {
-  margin: 0 0 6px;
+  margin: 0 0 10px;
   padding: 8px 10px;
   border-radius: 12px;
   color: #f5e8c8;
@@ -140,7 +142,7 @@
 }
 
 .board-frame {
-  padding: 10px;
+  padding: 14px;
   border: 1px solid rgba(255, 229, 186, 0.12);
   border-radius: 20px;
   background:
@@ -152,12 +154,12 @@
 .zone-strip {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 10px;
-  margin-bottom: 10px;
+  gap: 18px;
+  margin-bottom: 14px;
 }
 
 .zone-card {
-  padding: 9px;
+  padding: 12px;
   border-radius: 14px;
 }
 
@@ -166,7 +168,7 @@
   justify-content: space-between;
   gap: 10px;
   align-items: center;
-  margin-bottom: 8px;
+  margin-bottom: 10px;
 }
 
 .zone-card h2,
@@ -185,13 +187,13 @@
 .slot-grid {
   display: grid;
   grid-template-columns: repeat(4, minmax(0, 1fr));
-  gap: 8px;
+  gap: 14px;
 }
 
 .cell-slot,
 .playing-card {
   position: relative;
-  min-height: 116px;
+  min-height: 126px;
   border-radius: 16px;
   display: flex;
   align-items: center;
@@ -210,6 +212,11 @@
   border: 1px dashed rgba(255, 228, 186, 0.22);
   background: rgba(6, 24, 17, 0.36);
   color: #e8d7af;
+  justify-self: center;
+}
+
+.slot-grid .cell-slot {
+  width: min(100%, 96px);
 }
 
 .cell-slot.playing-card {
@@ -262,14 +269,14 @@
 
 .cascades-panel {
   display: grid;
-  grid-template-columns: repeat(8, minmax(112px, 1fr));
-  gap: 8px;
+  grid-template-columns: repeat(8, minmax(102px, 1fr));
+  gap: 14px;
   overflow-x: auto;
-  padding-bottom: 4px;
+  padding: 2px 4px 6px;
 }
 
 .cascade-column {
-  min-width: 112px;
+  min-width: 102px;
 }
 
 .cascade-stack {
@@ -303,12 +310,12 @@
 
 .playing-card--stacked {
   position: absolute;
-  left: 3px;
-  right: 3px;
+  left: 5px;
+  right: 5px;
 }
 
 .cascades-panel .playing-card {
-  min-height: 146px;
+  min-height: 166px;
 }
 
 .playing-card--red {
@@ -371,7 +378,8 @@
 
 @media (max-width: 760px) {
   .app-shell {
-    padding: 10px 10px 16px;
+    width: min(1480px, calc(100vw - 20px));
+    padding: 8px 0 14px;
   }
 
   .hero-metrics,
@@ -396,17 +404,17 @@
   }
 
   .cascades-panel {
-    grid-template-columns: repeat(8, 112px);
+    grid-template-columns: repeat(8, 106px);
     gap: 10px;
   }
 
   .cell-slot,
   .playing-card {
-    min-height: 106px;
+    min-height: 112px;
   }
 
   .cascades-panel .playing-card {
-    min-height: 134px;
+    min-height: 148px;
   }
 
   .card-face__corner {
