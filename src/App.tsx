@@ -13,6 +13,7 @@ import {
   countSolvedCards,
   createGame,
   findFirstFoundationMove,
+  getAutoCompleteGame,
   getOpenTransferCapacity,
   isGameWon,
   moveSelectionToCascade,
@@ -128,6 +129,7 @@ function App() {
   const solvedCards = countSolvedCards(game)
   const progress = Math.round((solvedCards / 52) * 100)
   const transferCapacity = getOpenTransferCapacity(game)
+  const autoCompleteGame = won ? null : getAutoCompleteGame(game)
 
   const updateStatus = (message: string, sound?: GameSound) => {
     setStatusMessage(message)
@@ -411,6 +413,16 @@ function App() {
     moveSelectionToHome(source)
   }
 
+  const handleAutoComplete = () => {
+    if (!autoCompleteGame) {
+      updateStatus('지금은 자동완성을 할 수 있는 상태가 아닙니다.', 'invalid')
+      return
+    }
+
+    const remainingCards = 52 - solvedCards
+    commitMove(autoCompleteGame, `${remainingCards}장을 자동완성했습니다.`, 'home')
+  }
+
   return (
     <div className="app-shell">
       <section className="top-panel">
@@ -455,6 +467,11 @@ function App() {
             <button type="button" className="action-button" onClick={handleAutoFoundation}>
               자동 올리기
             </button>
+            {autoCompleteGame ? (
+              <button type="button" className="action-button" onClick={handleAutoComplete}>
+                자동완성
+              </button>
+            ) : null}
           </div>
 
           <div className="table-stats">

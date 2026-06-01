@@ -98,6 +98,10 @@ function isDescendingAlternating(cards: Card[]) {
   return true
 }
 
+function cascadeIsOrdered(cascade: Card[]) {
+  return cascade.length < 2 || isDescendingAlternating(cascade)
+}
+
 function canPlaceOnCascade(movingCard: Card, targetCard?: Card) {
   if (!targetCard) {
     return true
@@ -371,4 +375,26 @@ export function findFirstFoundationMove(game: GameState): Selection | null {
 
 export function isGameWon(game: GameState) {
   return countSolvedCards(game) === 52
+}
+
+export function getAutoCompleteGame(game: GameState): GameState | null {
+  if (!game.cascades.every(cascadeIsOrdered)) {
+    return null
+  }
+
+  let nextGame = cloneGame(game)
+  let source = findFirstFoundationMove(nextGame)
+
+  while (source) {
+    const updatedGame = moveSelectionToFoundation(nextGame, source)
+
+    if (!updatedGame) {
+      return null
+    }
+
+    nextGame = updatedGame
+    source = findFirstFoundationMove(nextGame)
+  }
+
+  return isGameWon(nextGame) ? nextGame : null
 }
