@@ -26,6 +26,7 @@ import {
 import './App.css'
 
 const STACK_SPACING = 48
+const CASCADE_CARD_HEIGHT = 166
 
 const FOUNDATION_NAMES: Record<Suit, string> = {
   clubs: '클럽',
@@ -538,8 +539,8 @@ function App() {
         <section className="cascades-panel">
           {game.cascades.map((cascade, column) => {
             const cascadeHeight = Math.max(
-              210,
-              150 + Math.max(cascade.length - 1, 0) * STACK_SPACING,
+              CASCADE_CARD_HEIGHT + 28,
+              CASCADE_CARD_HEIGHT + Math.max(cascade.length - 1, 0) * STACK_SPACING + 8,
             )
             const isDropTarget = selection
               ? canMoveSelectionToCascade(game, selection, column)
