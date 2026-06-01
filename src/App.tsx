@@ -347,13 +347,13 @@ function App() {
     }
 
     const moved = moveSelectionByPriority(source, {
-      allowFoundation: false,
+      allowFoundation: true,
       allowCascade: true,
       allowFreeCell: false,
     })
 
     if (!moved) {
-      updateStatus('임시 칸 카드가 내려갈 수 있는 열이 없습니다.', 'invalid')
+      updateStatus('임시 칸 카드가 갈 수 있는 완성 칸이나 내려갈 열이 없습니다.', 'invalid')
     }
   }
 
