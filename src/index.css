@@ -1,5 +1,8 @@
 :root {
-  font-family: 'Avenir Next', 'Trebuchet MS', 'Segoe UI', sans-serif;
+  --ui-font:
+    'Apple SD Gothic Neo', 'SF Pro KR', -apple-system, BlinkMacSystemFont,
+    'Helvetica Neue', 'Pretendard', 'Noto Sans KR', 'Malgun Gothic', sans-serif;
+  font-family: var(--ui-font);
   line-height: 1.5;
   font-weight: 400;
   color: #f4ead1;

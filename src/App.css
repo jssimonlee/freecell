@@ -42,10 +42,11 @@
 
 .hero-copy h1 {
   margin: 0;
-  font-family: 'Iowan Old Style', 'Palatino Linotype', 'Book Antiqua', serif;
+  font-family: var(--ui-font);
   font-size: clamp(1.8rem, 3vw, 2.6rem);
   line-height: 1;
   color: #fff5df;
+  font-weight: 700;
 }
 
 .hero-metrics {
@@ -180,9 +181,10 @@
 
 .zone-card h2,
 .notes-panel h3 {
-  font-family: 'Iowan Old Style', 'Palatino Linotype', 'Book Antiqua', serif;
+  font-family: var(--ui-font);
   color: #fff4dd;
-  font-size: 1rem;
+  font-size: 1.02rem;
+  font-weight: 700;
 }
 
 .zone-card__header span {
@@ -199,7 +201,7 @@
 .cell-slot,
 .playing-card {
   position: relative;
-  min-height: 126px;
+  min-height: 138px;
   border-radius: 16px;
   display: flex;
   align-items: center;
@@ -245,13 +247,14 @@
 }
 
 .slot-label {
-  font-size: 0.74rem;
+  font-size: 0.88rem;
   color: #e4d5b3;
   text-transform: capitalize;
+  font-weight: 700;
 }
 
 .slot-symbol {
-  font-size: 1.8rem;
+  font-size: 2.35rem;
   line-height: 1;
 }
 
@@ -264,7 +267,7 @@
 }
 
 .cascade-column {
-  min-width: 104px;
+  min-width: 112px;
 }
 
 .column-target {
@@ -288,6 +291,7 @@
   border: 1px dashed rgba(255, 229, 186, 0.16);
   border-radius: 16px;
   background: rgba(6, 24, 17, 0.32);
+  overflow: hidden;
 }
 
 .cascade-stack--empty {
@@ -315,8 +319,8 @@
 
 .playing-card--stacked {
   position: absolute;
-  left: 6px;
-  right: 6px;
+  left: 4px;
+  right: 4px;
 }
 
 .playing-card--red {
@@ -334,7 +338,7 @@
   display: grid;
   gap: 2px;
   justify-items: center;
-  font-size: 1.12rem;
+  font-size: 1.34rem;
   line-height: 1;
   font-weight: 800;
   text-shadow: 0 1px 0 rgba(255, 255, 255, 0.4);
@@ -352,25 +356,27 @@
   display: grid;
   justify-items: center;
   align-items: center;
-  gap: 2px;
+  gap: 4px;
 }
 
 .card-face__rank {
-  font-size: 2rem;
+  font-size: 2.45rem;
   font-weight: 900;
   line-height: 0.92;
   letter-spacing: -0.04em;
 }
 
 .card-face__pip {
-  font-size: 3rem;
+  font-size: 3.35rem;
   line-height: 1;
 }
 
 @media (max-width: 1100px) {
-  .hero-panel,
-  .zone-strip,
-  .notes-panel {
+  .hero-panel {
+    align-items: stretch;
+  }
+
+  .zone-strip {
     grid-template-columns: 1fr;
   }
 }
@@ -402,24 +408,24 @@
   }
 
   .cascades-panel {
-    grid-template-columns: repeat(8, 96px);
+    grid-template-columns: repeat(8, 108px);
     gap: 12px;
   }
 
   .cell-slot,
   .playing-card {
-    min-height: 114px;
+    min-height: 126px;
   }
 
   .card-face__corner {
-    font-size: 1rem;
+    font-size: 1.14rem;
   }
 
   .card-face__rank {
-    font-size: 1.7rem;
+    font-size: 2rem;
   }
 
   .card-face__pip {
-    font-size: 2.45rem;
+    font-size: 2.8rem;
   }
 }

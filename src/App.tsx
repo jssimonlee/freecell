@@ -25,7 +25,7 @@ import {
 } from './lib/freecell'
 import './App.css'
 
-const STACK_SPACING = 30
+const STACK_SPACING = 40
 
 const FOUNDATION_NAMES: Record<Suit, string> = {
   clubs: '클럽',
@@ -67,6 +67,29 @@ function cardIsSelected(selection: Selection | null, column: number, index: numb
 
 function freeCellIsSelected(selection: Selection | null, index: number) {
   return selection?.kind === 'freeCell' && selection.index === index
+}
+
+function getCascadeSearchOrder(totalColumns: number, sourceColumn?: number) {
+  if (sourceColumn === undefined) {
+    return Array.from({ length: totalColumns }, (_, index) => index)
+  }
+
+  const order: number[] = []
+
+  for (let offset = 1; offset < totalColumns; offset += 1) {
+    const leftColumn = sourceColumn - offset
+    const rightColumn = sourceColumn + offset
+
+    if (leftColumn >= 0) {
+      order.push(leftColumn)
+    }
+
+    if (rightColumn < totalColumns) {
+      order.push(rightColumn)
+    }
+  }
+
+  return order
 }
 
 function CardFace({ card }: { card: Card }) {
@@ -185,6 +208,54 @@ function App() {
     commitMove(nextGame, getMoveSummary(selection, `${column + 1}열`))
   }
 
+  const moveSelectionByPriority = (
+    source: Selection,
+    options: {
+      sourceColumn?: number
+      allowFoundation: boolean
+      allowCascade: boolean
+      allowFreeCell: boolean
+    },
+  ) => {
+    if (options.allowFoundation) {
+      const foundationMove = moveSelectionToFoundation(game, source)
+
+      if (foundationMove) {
+        commitMove(foundationMove, getMoveSummary(source, '완성 칸'))
+        return true
+      }
+    }
+
+    if (options.allowCascade) {
+      const cascadeSearchOrder = getCascadeSearchOrder(
+        game.cascades.length,
+        options.sourceColumn,
+      )
+
+      for (const column of cascadeSearchOrder) {
+        const cascadeMove = moveSelectionToCascade(game, source, column)
+
+        if (cascadeMove) {
+          commitMove(cascadeMove, getMoveSummary(source, `${column + 1}열`))
+          return true
+        }
+      }
+    }
+
+    if (options.allowFreeCell) {
+      for (let index = 0; index < game.freeCells.length; index += 1) {
+        const freeCellMove = moveSelectionToFreeCell(game, source, index)
+
+        if (freeCellMove) {
+          commitMove(freeCellMove, getMoveSummary(source, `임시 칸 ${index + 1}`))
+          return true
+        }
+      }
+    }
+
+    return false
+  }
+
   const handleCascadeCardClick = (
     event: MouseEvent<HTMLButtonElement>,
     column: number,
@@ -235,7 +306,34 @@ function App() {
     const source = buildCascadeSelection(game, column, index)
 
     if (source) {
-      moveSelectionToHome(source)
+      const moved = moveSelectionByPriority(source, {
+        sourceColumn: column,
+        allowFoundation: true,
+        allowCascade: true,
+        allowFreeCell: true,
+      })
+
+      if (!moved) {
+        setStatusMessage('자동으로 이동할 수 있는 완성 칸, 다른 열, 임시 칸이 없습니다.')
+      }
+    }
+  }
+
+  const handleFreeCellDoubleClick = (index: number) => {
+    const source = buildFreeCellSelection(game, index)
+
+    if (!source) {
+      return
+    }
+
+    const moved = moveSelectionByPriority(source, {
+      allowFoundation: false,
+      allowCascade: true,
+      allowFreeCell: false,
+    })
+
+    if (!moved) {
+      setStatusMessage('임시 칸 카드가 내려갈 수 있는 열이 없습니다.')
     }
   }
 
@@ -375,13 +473,7 @@ function App() {
                       .filter(Boolean)
                       .join(' ')}
                     onClick={() => handleFreeCellClick(index)}
-                    onDoubleClick={() => {
-                      const source = buildFreeCellSelection(game, index)
-
-                      if (source) {
-                        moveSelectionToHome(source)
-                      }
-                    }}
+                    onDoubleClick={() => handleFreeCellDoubleClick(index)}
                   >
                     {card ? (
                       <CardFace card={card} />
@@ -445,8 +537,8 @@ function App() {
         <section className="cascades-panel">
           {game.cascades.map((cascade, column) => {
             const cascadeHeight = Math.max(
-              168,
-              128 + Math.max(cascade.length - 1, 0) * STACK_SPACING,
+              186,
+              142 + Math.max(cascade.length - 1, 0) * STACK_SPACING,
             )
             const isDropTarget = selection
               ? canMoveSelectionToCascade(game, selection, column)
