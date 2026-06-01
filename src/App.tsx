@@ -25,7 +25,7 @@ import {
 } from './lib/freecell'
 import './App.css'
 
-const STACK_SPACING = 40
+const STACK_SPACING = 48
 
 const FOUNDATION_NAMES: Record<Suit, string> = {
   clubs: '클럽',
@@ -392,55 +392,56 @@ function App() {
 
   return (
     <div className="app-shell">
-      <header className="hero-panel">
-        <div className="hero-copy">
-          <p className="eyebrow">웹 카드 게임</p>
-          <h1>프리셀</h1>
-        </div>
+      <section className="top-panel">
+        <header className="hero-panel">
+          <div className="hero-copy">
+            <h1>프리셀</h1>
+          </div>
 
-        <div className="hero-metrics">
-          <article className="metric-card">
-            <span className="metric-card__label">이동</span>
-            <strong>{game.moves}</strong>
-          </article>
-          <article className="metric-card">
-            <span className="metric-card__label">시간</span>
-            <strong>{formatTime(elapsedSeconds)}</strong>
-          </article>
-          <article className="metric-card">
-            <span className="metric-card__label">완료</span>
-            <strong>{progress}%</strong>
-          </article>
-        </div>
-      </header>
+          <div className="hero-metrics">
+            <article className="metric-card">
+              <span className="metric-card__label">이동</span>
+              <strong>{game.moves}</strong>
+            </article>
+            <article className="metric-card">
+              <span className="metric-card__label">시간</span>
+              <strong>{formatTime(elapsedSeconds)}</strong>
+            </article>
+            <article className="metric-card">
+              <span className="metric-card__label">완료</span>
+              <strong>{progress}%</strong>
+            </article>
+          </div>
+        </header>
 
-      <section className="control-panel">
-        <div className="controls">
-          <button
-            type="button"
-            className="action-button action-button--primary"
-            onClick={startNewDeal}
-          >
-            새 게임
-          </button>
-          <button
-            type="button"
-            className="action-button"
-            onClick={undoMove}
-            disabled={history.length === 0}
-          >
-            되돌리기
-          </button>
-          <button type="button" className="action-button" onClick={handleAutoFoundation}>
-            자동 올리기
-          </button>
-        </div>
+        <section className="control-panel">
+          <div className="controls">
+            <button
+              type="button"
+              className="action-button action-button--primary"
+              onClick={startNewDeal}
+            >
+              새 게임
+            </button>
+            <button
+              type="button"
+              className="action-button"
+              onClick={undoMove}
+              disabled={history.length === 0}
+            >
+              되돌리기
+            </button>
+            <button type="button" className="action-button" onClick={handleAutoFoundation}>
+              자동 올리기
+            </button>
+          </div>
 
-        <div className="table-stats">
-          <span>빈 임시 칸 {emptyFreeCells}</span>
-          <span>빈 열 {emptyCascades}</span>
-          <span>현재 최대 {transferCapacity}장 이동</span>
-        </div>
+          <div className="table-stats">
+            <span>빈 임시 칸 {emptyFreeCells}</span>
+            <span>빈 열 {emptyCascades}</span>
+            <span>현재 최대 {transferCapacity}장 이동</span>
+          </div>
+        </section>
       </section>
 
       <p className={`status-banner ${won ? 'status-banner--won' : ''}`}>{statusMessage}</p>
@@ -537,8 +538,8 @@ function App() {
         <section className="cascades-panel">
           {game.cascades.map((cascade, column) => {
             const cascadeHeight = Math.max(
-              186,
-              142 + Math.max(cascade.length - 1, 0) * STACK_SPACING,
+              210,
+              150 + Math.max(cascade.length - 1, 0) * STACK_SPACING,
             )
             const isDropTarget = selection
               ? canMoveSelectionToCascade(game, selection, column)
@@ -546,14 +547,6 @@ function App() {
 
             return (
               <article key={`cascade-${column}`} className="cascade-column">
-                <button
-                  type="button"
-                  className={`column-target ${isDropTarget ? 'column-target--active' : ''}`}
-                  onClick={() => moveSelectionToColumn(column)}
-                >
-                  {column + 1}열
-                </button>
-
                 <div
                   className={[
                     'cascade-stack',
@@ -563,15 +556,10 @@ function App() {
                     .filter(Boolean)
                     .join(' ')}
                   style={{ height: cascadeHeight }}
+                  onClick={() => moveSelectionToColumn(column)}
                 >
                   {cascade.length === 0 ? (
-                    <button
-                      type="button"
-                      className="empty-cascade"
-                      onClick={() => moveSelectionToColumn(column)}
-                    >
-                      여기로 이동
-                    </button>
+                    <span className="empty-cascade">이동</span>
                   ) : (
                     cascade.map((card, index) => (
                       <button
