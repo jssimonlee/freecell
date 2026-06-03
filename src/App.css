@@ -164,7 +164,6 @@
   padding: 5px 9px;
   background: rgba(8, 31, 22, 0.5);
   color: #e7ddc8;
-  font-size: 0.72rem;
 }
 
 .status-banner {
@@ -255,7 +254,7 @@
 }
 
 .slot-grid .cell-slot {
-  width: min(100%, 96px);
+  width: min(100%, 92px);
 }
 
 .cell-slot.playing-card {
@@ -308,14 +307,14 @@
 
 .cascades-panel {
   display: grid;
-  grid-template-columns: repeat(8, minmax(102px, 1fr));
+  grid-template-columns: repeat(8, minmax(92px, 1fr));
   gap: 14px;
   overflow-x: auto;
   padding: 2px 4px 6px;
 }
 
 .cascade-column {
-  min-width: 102px;
+  min-width: 92px;
 }
 
 .cascade-stack {
@@ -349,12 +348,12 @@
 
 .playing-card--stacked {
   position: absolute;
-  left: 5px;
-  right: 5px;
+  left: 4px;
+  right: 4px;
 }
 
 .cascades-panel .playing-card {
-  min-height: 166px;
+  min-height: 172px;
 }
 
 .playing-card--red {
@@ -367,12 +366,12 @@
 
 .card-face__corner {
   position: absolute;
-  top: 8px;
-  left: 9px;
+  top: 7px;
+  left: 7px;
   display: grid;
-  gap: 2px;
+  gap: 1px;
   justify-items: center;
-  font-size: 1.42rem;
+  font-size: 1.16rem;
   line-height: 1;
   font-weight: 800;
   text-shadow: 0 1px 0 rgba(255, 255, 255, 0.4);
@@ -381,8 +380,8 @@
 .card-face__corner--bottom {
   top: auto;
   left: auto;
-  right: 9px;
-  bottom: 8px;
+  right: 7px;
+  bottom: 7px;
   transform: rotate(180deg);
 }
 
@@ -394,14 +393,14 @@
 }
 
 .card-face__rank {
-  font-size: 2.8rem;
+  font-size: 2.5rem;
   font-weight: 900;
   line-height: 0.92;
   letter-spacing: -0.04em;
 }
 
 .card-face__pip {
-  font-size: 3.7rem;
+  font-size: 3.3rem;
   line-height: 1;
 }
 
@@ -443,7 +442,7 @@
   }
 
   .cascades-panel {
-    grid-template-columns: repeat(8, 106px);
+    grid-template-columns: repeat(8, 98px);
     gap: 10px;
   }
 
@@ -453,18 +452,18 @@
   }
 
   .cascades-panel .playing-card {
-    min-height: 148px;
+    min-height: 156px;
   }
 
   .card-face__corner {
-    font-size: 1.16rem;
+    font-size: 1.02rem;
   }
 
   .card-face__rank {
-    font-size: 2.2rem;
+    font-size: 2rem;
   }
 
   .card-face__pip {
-    font-size: 3rem;
+    font-size: 2.8rem;
   }
 }

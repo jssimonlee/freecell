@@ -28,8 +28,8 @@ import {
 import { useGameAudio, type GameSound } from './lib/gameAudio'
 import './App.css'
 
-const STACK_SPACING = 48
-const CASCADE_CARD_HEIGHT = 166
+const STACK_SPACING = 58
+const CASCADE_CARD_HEIGHT = 172
 
 const FOUNDATION_NAMES: Record<Suit, string> = {
   clubs: '클럽',
