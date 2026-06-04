@@ -28,7 +28,7 @@ import {
 import { useGameAudio, type GameSound } from './lib/gameAudio'
 import './App.css'
 
-const STACK_SPACING = 58
+const STACK_SPACING = 44
 const CASCADE_CARD_HEIGHT = 172
 
 const FOUNDATION_NAMES: Record<Suit, string> = {
@@ -108,16 +108,11 @@ function CardFace({ card }: { card: Card }) {
   return (
     <>
       <span className="card-face__corner">
-        <span>{card.rankText}</span>
-        <span>{card.suitSymbol}</span>
+        <span className="card-face__value">{card.rankText}</span>
+        <span className="card-face__suit">{card.suitSymbol}</span>
       </span>
       <span className="card-face__center">
-        <span className="card-face__rank">{card.rankText}</span>
         <span className="card-face__pip">{card.suitSymbol}</span>
-      </span>
-      <span className="card-face__corner card-face__corner--bottom">
-        <span>{card.rankText}</span>
-        <span>{card.suitSymbol}</span>
       </span>
     </>
   )
